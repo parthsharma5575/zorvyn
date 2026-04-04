@@ -48,7 +48,7 @@
 | Technology | Purpose |
 |---|---|
 | Java 21 | Core language |
-| Spring Boot 3.x | Application framework |
+| Spring Boot 4.0.5 | Application framework |
 | Spring Security | Authentication & authorization |
 | JWT (jjwt) | Stateless token management |
 | Spring Data JPA | ORM & database access |
