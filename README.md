@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  A production-ready, role-based financial management REST API built with Spring Boot, secured with JWT authentication, and backed by PostgreSQL. Supports multi-role access control for managing transactions and viewing dashboard analytics.
+  A role-based financial management REST API built with Spring Boot, secured with JWT authentication, and backed by PostgreSQL. Supports multi-role access control for managing transactions and viewing dashboard analytics.
 </p>
 
 ---
