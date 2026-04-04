@@ -34,8 +34,9 @@
 
 - **JWT-based Authentication** — Stateless, token-based login with 24-hour expiry
 - **Role-Based Access Control** — Three distinct roles: `ADMIN`, `ANALYST`, `VIEWER`
-- **Transaction Management** — Full CRUD with filtering by category, type, and date
-- **Dashboard Analytics** — Aggregated income, expense, net balance, and category breakdowns
+- **Transaction Management** — Full CRUD with filtering by category, type, and date range
+- **Pagination** — All transaction listings support page and size query parameters
+- **Dashboard Analytics** — Aggregated income, expense, net balance, category breakdowns, and monthly trends
 - **User Lifecycle Management** — Soft-delete via `isActive` flag; admins can activate/deactivate users
 - **Swagger UI** — Interactive API documentation available out of the box
 - **Clean Architecture** — Layered separation: Controller → Service → Repository → DB
@@ -78,8 +79,9 @@ Client Request
 
 ---
 
-## Roles and Permissions
+---
 
+## Roles and Permissions
 | Role | Transactions | Users | Dashboard |
 |---|---|---|---|
 | `ADMIN` | Full CRUD | Full access | Full view |
@@ -93,25 +95,30 @@ Client Request
 ## API Endpoints
 
 ### Auth — Public
-
 | Method | Endpoint | Description |
 |---|---|---|
 | `POST` | `/api/auth/register` | Register a new user |
 | `POST` | `/api/auth/login` | Login and receive a JWT token |
 
 ### Transactions — Protected
-
 | Method | Endpoint | Role Required | Description |
 |---|---|---|---|
 | `POST` | `/api/transactions/` | ADMIN, ANALYST | Create a transaction |
-| `GET` | `/api/transactions/` | ALL | Get all transactions |
+| `GET` | `/api/transactions?page=0&size=10` | ALL | Get all transactions (paginated) |
 | `GET` | `/api/transactions/{id}` | ALL | Get transaction by ID |
 | `PUT` | `/api/transactions/{id}` | ADMIN | Update a transaction |
 | `DELETE` | `/api/transactions/{id}` | ADMIN | Delete a transaction |
 | `GET` | `/api/transactions/filter` | ALL | Filter transactions by params |
 
-### Users — Admin Only
+**Filter query parameters:**
+| Parameter | Type | Example |
+|---|---|---|
+| `type` | INCOME or EXPENSE | `?type=INCOME` |
+| `category` | String | `?category=Salary` |
+| `startDate` | yyyy-MM-dd | `?startDate=2024-01-01` |
+| `endDate` | yyyy-MM-dd | `?endDate=2024-12-31` |
 
+### Users — Admin Only
 | Method | Endpoint | Description |
 |---|---|---|
 | `GET` | `/api/users/` | Get all users |
@@ -121,7 +128,6 @@ Client Request
 | `PUT` | `/api/users/{id}/activate` | Reactivate a user |
 
 ### Dashboard — Protected
-
 | Method | Endpoint | Description |
 |---|---|---|
 | `GET` | `/api/dashboard/` | Get summary analytics |
@@ -131,26 +137,22 @@ Client Request
 ## Getting Started
 
 ### Prerequisites
-
 - Java 21+
 - Maven 3.8+
 - PostgreSQL running locally
 
 ### 1. Clone the Repository
-
 ```bash
 git clone https://github.com/parthsharma5575/zorvyn.git
 cd zorvyn
 ```
 
 ### 2. Create the Database
-
 ```sql
 CREATE DATABASE finance_dashboard;
 ```
 
 ### 3. Configure `application.properties`
-
 ```properties
 spring.datasource.url=jdbc:postgresql://localhost:5432/finance_dashboard
 spring.datasource.username=your_username
@@ -159,6 +161,7 @@ spring.datasource.password=your_password
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.properties.hibernate.format_sql=true
 
 jwt.secret=your_base64_encoded_secret
 jwt.expiration=86400000
@@ -168,7 +171,6 @@ springdoc.api-docs.path=/v3/api-docs
 ```
 
 ### 4. Run the Application
-
 ```bash
 mvn spring-boot:run
 ```
@@ -184,7 +186,6 @@ http://localhost:8080/swagger-ui/index.html
 ## Dashboard Response
 
 Sample response from `GET /api/dashboard/`:
-
 ```json
 {
   "totalIncome": 5000.00,
@@ -195,7 +196,22 @@ Sample response from `GET /api/dashboard/`:
     "Rent": 1500.00,
     "Food": 500.00
   },
-  "recentTransactions": []
+  "monthlyTotals": {
+    "JANUARY 2024": 3000.00,
+    "FEBRUARY 2024": 2000.00
+  },
+  "recentTransactions": [
+    {
+      "id": "uuid",
+      "amount": 1500.00,
+      "type": "INCOME",
+      "category": "Salary",
+      "description": "March salary",
+      "date": "2024-03-01",
+      "userName": "John Doe",
+      "createdAt": "2024-03-01T10:00:00"
+    }
+  ]
 }
 ```
 
@@ -222,15 +238,18 @@ src/main/java/com/zorvyn/
 
 ---
 
-## Design Decisions(Assumption)
+## Design Decisions
 
 - **Email as username** — Simplifies authentication without a separate username field
 - **Soft delete for users** — Users are deactivated via `isActive` flag rather than removed from the DB, preserving audit trails
 - **ANALYST can create but not modify/delete** — Follows the principle of least privilege for analyst-level access
 - **VIEWER sees only own data** — Transactions and dashboard scoped to the authenticated user's records
 - **`LocalDate` for transaction dates** — Captures the business date of the transaction, not the system timestamp
-- **`createdAt` is immutable** — Auto-set on record creation; never modified on updates
+- **`createdAt` is immutable** — Auto-set on record creation via `@PrePersist`; never modified on updates
 - **JWT expiry set to 24 hours** — Balances security and usability for session management
+- **Pagination on transactions** — Default page size of 10 to prevent large payloads; clients can request specific pages via `page` and `size` query parameters
+- **BigDecimal for amounts** — Ensures precise financial calculations without floating point errors
+- **Manual DTO mapping** — Chosen over MapStruct for simplicity and transparency; mapping logic is explicit and easy to trace
 
 ---
 
@@ -241,6 +260,9 @@ src/main/java/com/zorvyn/
 3. Open [Swagger UI](http://localhost:8080/swagger-ui/index.html)
 4. Click **Authorize** and enter: `Bearer <your_token>`
 5. All protected endpoints are now accessible based on your role
+6. Filter transactions: `GET /api/transactions/filter?type=INCOME&category=Salary`
+7. Paginate results: `GET /api/transactions?page=0&size=5`
+8. View dashboard summary: `GET /api/dashboard/`
 
 ---
 
