@@ -92,18 +92,23 @@ public class TransactionService {
     }
 
 
-    public List<TransactionResponseDto> getTransactionByFilter(Optional<TransactionType>type , Optional<String>category, Optional<LocalDate>startDate, Optional<LocalDate>endDate ){
+    public List<TransactionResponseDto> getTransactionByFilter(
+            TransactionType type ,
+            String category,
+            LocalDate startDate,
+            LocalDate endDate
+    )
+    {
         User user = getCurrentUser();
         List<Transaction> transactions = transactionRepository.findByUserId(user.getId());
 
         return transactions.stream()
-                .filter(t -> type.isEmpty() || t.getType().equals(type.get()))
-                .filter(t -> category.isEmpty() || t.getCategory().equalsIgnoreCase(category.get()))
-                .filter(t -> startDate.isEmpty() || !t.getDate().isBefore(startDate.get()))
-                .filter(t -> endDate.isEmpty() || !t.getDate().isAfter(endDate.get()))
+                .filter(t -> type == null || t.getType().equals(type))
+                .filter(t -> category == null || t.getCategory().equalsIgnoreCase(category))
+                .filter(t -> startDate == null || !t.getDate().isBefore(startDate))
+                .filter(t -> endDate == null || !t.getDate().isAfter(endDate))
                 .map(transactionMapper::toResponseDto)
                 .toList();
-
 
     }
 

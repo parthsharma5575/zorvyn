@@ -4,7 +4,10 @@ import com.zorvyn.dto.request.TransactionRequestDto;
 import com.zorvyn.dto.response.TransactionResponseDto;
 import com.zorvyn.model.enums.TransactionType;
 import com.zorvyn.service.TransactionService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,6 +19,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @RestController
+@Tag(name = "Transactions", description = "Transaction management")
 @RequestMapping("/api/transactions")
 public class TransactionController {
         private final TransactionService transactionService;
@@ -26,6 +30,7 @@ public class TransactionController {
 
 
     @PostMapping("/")
+    @Operation(summary = "Create a new transaction")
     @PreAuthorize("hasAnyRole('ADMIN','ANALYST')")
     public ResponseEntity<TransactionResponseDto> createTransaction(@Valid @RequestBody TransactionRequestDto transactionRequestDto){
         TransactionResponseDto dto = transactionService.createTransaction(transactionRequestDto);
@@ -33,6 +38,7 @@ public class TransactionController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN','ANALYST','VIEWER')")
+    @Operation(summary = "Get all transactions")
     @GetMapping("/")
     public ResponseEntity<List<TransactionResponseDto>> getAllTransactions(){
         List<TransactionResponseDto> list = transactionService.getAllTransactions();
@@ -41,6 +47,7 @@ public class TransactionController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Get transaction by id")
     @PreAuthorize("hasAnyRole('ADMIN','ANALYST','VIEWER')")
     public ResponseEntity<TransactionResponseDto> getTransactionById(@PathVariable UUID id){
         TransactionResponseDto transaction = transactionService.getTransactionById(id);
@@ -50,6 +57,7 @@ public class TransactionController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
+    @Operation(summary = "Update transaction by id")
     public ResponseEntity<TransactionResponseDto> updateTransaction(@PathVariable UUID id, @Valid @RequestBody TransactionRequestDto transactionRequestDto){
         TransactionResponseDto transaction = transactionService.updateTransaction(id, transactionRequestDto);
         return new ResponseEntity<>(transaction,HttpStatus.OK);
@@ -57,6 +65,7 @@ public class TransactionController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Delete transaction by id")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTransaction(@PathVariable UUID id){
         transactionService.deleteTransaction(id);
@@ -64,9 +73,14 @@ public class TransactionController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN','ANALYST','VIEWER')")
+    @Operation(summary = "Get transactions by filter")
     @GetMapping("/filter")
-    public ResponseEntity<List<TransactionResponseDto>> getTransactionByFilter(@RequestParam Optional<TransactionType>type , @RequestParam Optional<String>category, @RequestParam Optional<LocalDate>startDate, @RequestParam Optional<LocalDate>endDate){
+    public ResponseEntity<List<TransactionResponseDto>> getTransactionByFilter(
+            @RequestParam(required = false) TransactionType type,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         List<TransactionResponseDto> list = transactionService.getTransactionByFilter(type, category, startDate, endDate);
-        return new ResponseEntity<>(list,HttpStatus.OK);
+        return ResponseEntity.ok(list);
     }
 }
