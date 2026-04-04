@@ -10,6 +10,10 @@ import com.zorvyn.model.enums.Role;
 import com.zorvyn.model.enums.TransactionType;
 import com.zorvyn.repository.TransactionRepository;
 import com.zorvyn.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
@@ -42,18 +46,15 @@ public class TransactionService {
     }
 
 
-    public List<TransactionResponseDto> getAllTransactions(){
+    public List<TransactionResponseDto> getAllTransactions(int page,int size){
+        Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
         User user = getCurrentUser();
         Role role=user.getRole();
         if(role.equals(Role.ADMIN)){
-            List<Transaction> list = transactionRepository.findAll();
-            return list.stream().map(transactionMapper::toResponseDto).toList();
+            return transactionRepository.findAll(pageable).map(transactionMapper::toResponseDto).toList();
         } else{
-            List<Transaction> transactionList=transactionRepository.findByUserId(user.getId());
-
-            return transactionList.stream().map(transactionMapper::toResponseDto).toList();
+            return transactionRepository.findByUserId(user.getId(),pageable).map(transactionMapper::toResponseDto).toList();
         }
-
 
     }
 

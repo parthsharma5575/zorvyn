@@ -54,7 +54,14 @@ public class DashboardService {
         ));
         List<TransactionResponseDto>recentTransactions=transactions.stream().sorted(Comparator.comparing(Transaction::getDate).reversed()).limit(5)
                 .map(transactionMapper::toResponseDto).toList();
+        Map<String,BigDecimal>monthlyTotals=transactions.stream().collect(
+                Collectors.groupingBy(
+                        t->t.getDate().getMonth().name()+" "+t.getDate().getYear(),
+                        Collectors.mapping(Transaction::getAmount,Collectors.reducing(BigDecimal.ZERO,BigDecimal::add))
+                )
+        );
 
-        return new DashboardSummaryDto(totalIncome,totalExpense,netBalance,categoryTotals,recentTransactions);
+        return new DashboardSummaryDto(totalIncome,totalExpense,netBalance,categoryTotals,recentTransactions,monthlyTotals);
+
     }
 }

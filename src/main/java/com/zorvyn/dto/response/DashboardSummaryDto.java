@@ -9,5 +9,6 @@ public record DashboardSummaryDto(
         BigDecimal totalExpense,
         BigDecimal netBalance,
         Map<String, BigDecimal> categoryTotals,
-        List<TransactionResponseDto> recentTransactions
+        List<TransactionResponseDto> recentTransactions,
+        Map<String,BigDecimal>monthTotals
 ){}

@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -40,10 +39,8 @@ public class TransactionController {
     @PreAuthorize("hasAnyRole('ADMIN','ANALYST','VIEWER')")
     @Operation(summary = "Get all transactions")
     @GetMapping("/")
-    public ResponseEntity<List<TransactionResponseDto>> getAllTransactions(){
-        List<TransactionResponseDto> list = transactionService.getAllTransactions();
-        return new ResponseEntity<>(list, HttpStatus.OK);
-
+    public ResponseEntity<List<TransactionResponseDto>> getAllTransactions(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size){
+        return ResponseEntity.ok(transactionService.getAllTransactions(page, size));
     }
 
     @GetMapping("/{id}")
