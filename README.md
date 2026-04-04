@@ -222,7 +222,7 @@ src/main/java/com/zorvyn/
 
 ---
 
-## Design Decisions
+## Design Decisions(Assumption)
 
 - **Email as username** — Simplifies authentication without a separate username field
 - **Soft delete for users** — Users are deactivated via `isActive` flag rather than removed from the DB, preserving audit trails
