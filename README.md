@@ -7,10 +7,12 @@ A role-based financial management backend built with Spring Boot , Spring Securi
 ## Tech Stack
 
 - Java 21
-- Spring Boot 3.4.4
-- Spring Security + JWT (jjwt 0.12.6)
+- Spring Boot
+- Spring Security
+- JWT (jjwt)
 - PostgreSQL
-- SpringDoc OpenAPI (Swagger UI)
+- Spring Data JPA
+- SpringDoc OpenAPI / Swagger UI
 - Lombok
 
 ---
